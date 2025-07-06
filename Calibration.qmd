@@ -1,0 +1,326 @@
+---
+title: "calibration"
+format: revealjs
+---
+
+# Calibration **⚖️**
+
+-   How well the model is "calibrated": Patients with a probability of about 0.2 are expected to have a proportion of about 0.2 observed events.
+
+-   In order to asses calibration we need to use quantiles of estimated probabilities (discrete version of calibration) or some kind of smoothing algorithm.
+
+-   The main idea is to visually inspect for similarity with the linear line of 45 degrees.
+
+-   Visual inspection might be problematic, but from our experience it is a good-enough practice.
+
+## Calibration **⚖️**
+
+### Why should we care?
+
+-   An accurate model in terms of discrimination might produce uncalibrated estimated probabilities what will lead to poor decisions.
+
+-   Logistic Regression is calibrated by default, but if you use fancy ML prediction models they might not be calibrated.
+
+## Calibration **⚖️**
+
+### What if the model is not calibrated?
+
+-   Uncalibrated models can be fixed by remodeling the predictions with a simple logistic regression (recalibration).
+
+-   Python users might use [`sklearn.calibration.CalibratedClassifierCV`](https://scikit-learn.org/stable/modules/generated/sklearn.calibration.CalibratedClassifierCV.html).
+
+-   Optimizing the logloss function will produce calibrated model.
+
+## **Discrete** Calibration **⚖️**
+
+<table style="width:98%;">
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+</colgroup>
+<tbody>
+<tr>
+<td style="text-align: center;"><p><strong>p̂</strong></p></td>
+<td style="text-align: center;"><p>0.11</p></td>
+<td style="text-align: center;"><p>0.15</p></td>
+<td style="text-align: center;"><p>0.18</p></td>
+<td style="text-align: center;"><p>0.29</p></td>
+<td style="text-align: center;"><p>0.31</p></td>
+<td style="text-align: center;"><p>0.33</p></td>
+<td style="text-align: center;"><p>0.45</p></td>
+<td style="text-align: center;"><p>0.47</p></td>
+<td style="text-align: center;"><p>0.63</p></td>
+<td style="text-align: center;"><p>0.72</p></td>
+</tr>
+<tr>
+<td style="text-align: center;"><p><strong>R</strong></p></td>
+<td style="text-align: center;"><p>10</p></td>
+<td style="text-align: center;"><p>9</p></td>
+<td style="text-align: center;"><p>8</p></td>
+<td style="text-align: center;"><p>7</p></td>
+<td style="text-align: center;"><p>6</p></td>
+<td style="text-align: center;"><p>5</p></td>
+<td style="text-align: center;"><p>4</p></td>
+<td style="text-align: center;"><p>3</p></td>
+<td style="text-align: center;"><p>2</p></td>
+<td style="text-align: center;"><p>1</p></td>
+</tr>
+<tr>
+<td style="text-align: center;"><p><strong>Y</strong></p></td>
+<td style="text-align: center;"><p>0</p></td>
+<td style="text-align: center;"><p>0</p></td>
+<td style="text-align: center;"><p>0</p></td>
+<td style="text-align: center;"><p>0</p></td>
+<td style="text-align: center;"><p>1</p></td>
+<td style="text-align: center;"><p>0</p></td>
+<td style="text-align: center;"><p>1</p></td>
+<td style="text-align: center;"><p>0</p></td>
+<td style="text-align: center;"><p>1</p></td>
+<td style="text-align: center;"><p>1</p></td>
+</tr>
+<tr>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"><p><br />
+<span class="emoji" data-emoji="raised_eyebrow">🤨</span></p></td>
+<td style="text-align: center;"><p><br />
+🤨</p></td>
+<td style="text-align: center;"><p><br />
+🤨</p></td>
+<td style="text-align: center;"><p><br />
+<span class="emoji" data-emoji="raised_eyebrow">🤨</span></p></td>
+<td style="text-align: center;"><p><br />
+<span class="emoji" data-emoji="nauseated_face">🤢</span></p></td>
+<td style="text-align: center;"><p><br />
+🤨</p></td>
+<td style="text-align: center;"><p><br />
+🤢</p></td>
+<td style="text-align: center;"><p><br />
+<span class="emoji" data-emoji="raised_eyebrow">🤨</span></p></td>
+<td style="text-align: center;"><p><br />
+<span class="emoji" data-emoji="nauseated_face">🤢</span></p></td>
+<td style="text-align: center;"><p><br />
+🤢</p></td>
+</tr>
+</tbody>
+</table>
+
+## **Discrete** Calibration **⚖️**
+
+::::: columns
+::: {.column width="50%"}
++:-----:+:----:+:----:+:----:+:----:+
+| **p̂** | 0.11 | 0.15 | 0.18 | 0.29 |
++-------+------+------+------+------+
+| **R** | 10   | 9    | 8    | 7    |
++-------+------+------+------+------+
+| **Ŷ** | 0    | 0    | 0    | 0    |
++-------+------+------+------+------+
+| **Y** | 0    | 0    | 0    | 0    |
++-------+------+------+------+------+
+|       | \    | \    | \    | \    |
+|       | 🤨   | 🤨   | 🤨   | 🤨   |
++-------+------+------+------+------+
+:::
+
+::: {.column width="50%"}
+$$\begin{aligned}
+\scriptsize{
+\\\text{Observed: }\frac{\text{0}}{\text{4}} = 0}
+\end{aligned}$$
+
+$$\begin{aligned}
+\scriptsize{
+\\\text{Predicted: }\frac{\text{0.11 + 0.15 + 0.18 + 0.29}}{\text{4}} = 0.1825}
+\end{aligned}$$
+:::
+:::::
+
+## **Discrete** Calibration **⚖️**
+
+::::: columns
+::: {.column width="50%"}
++:-----:+:---:+:----:+:----:+
+| **p̂** | 031 | 0.33 | 0.45 |
++-------+-----+------+------+
+| **R** | 6   | 5    | 4    |
++-------+-----+------+------+
+| **Y** | 1   | 0    | 1    |
++-------+-----+------+------+
+|       | \   | \    | \    |
+|       | 🤢  | 🤨   | 🤢   |
++-------+-----+------+------+
+:::
+
+::: {.column width="50%"}
+$$\begin{aligned}
+\scriptsize{
+\\\text{Observed: }\frac{\text{2}}{\text{3}} = 0.66'}
+\end{aligned}$$
+
+$$\begin{aligned}
+\scriptsize{
+\\\text{Predicted: }\frac{\text{0.31 + 0.33 + 0.45}}{\text{3}} = 0.363'}
+\end{aligned}$$
+:::
+:::::
+
+## **Discrete** Calibration **⚖️**
+
+::::: columns
+::: {.column width="50%"}
++:-----:+:----:+:----:+:----:+
+| **p̂** | 0.47 | 0.63 | 0.72 |
++-------+------+------+------+
+| **R** | 3    | 2    | 1    |
++-------+------+------+------+
+| **Y** | 0    | 1    | 1    |
++-------+------+------+------+
+|       | \    | \    | \    |
+|       | 🤨   | 🤢   | 🤢   |
++-------+------+------+------+
+:::
+
+::: {.column width="50%"}
+$$\begin{aligned}
+\scriptsize{
+\\\text{Observed: }\frac{\text{2}}{\text{3}} = 0.66'}
+\end{aligned}$$
+
+$$\begin{aligned}
+\scriptsize{
+\\\text{Predicted: }\frac{\text{0.47 + 0.63 + 0.72}}{\text{3}} = 0.607}
+\end{aligned}$$
+:::
+:::::
+
+## **Discrete** Calibration **⚖️**
+
+```{r}
+probs <- c(0.3, 0.4, 0.4, 0.2, 0.1)
+reals <- c(0, 1, 1, 1, 0)
+
+plotly::plot_ly(
+    heigt = 450,
+    width = 450,
+    x = ~Predicted, 
+    y = ~Observed) |>  
+  plotly::add_lines(
+    name = "Perfect Calibration",
+    data = data.frame(
+      Observed = c(0, 1),
+      Predicted = c(0, 1)),
+      color = I("grey"), 
+    line = list(dash="dot"),
+    showlegend = FALSE
+    ) |> 
+  plotly::add_trace(
+    data = data.frame(
+      Observed = c(0, 2/3, 2/3),
+      Predicted = c(0.1825, 0.363, 0.607)),
+      color = I("black"), 
+    showlegend = FALSE,
+    name = "Discrete",
+    mode = 'lines+markers',
+    hovertemplate = paste0("<b>%{xaxis.title.text}:</b> %{x:.2f}<br>", 
+                           "<b>%{yaxis.title.text}:</b> %{y:.2f}")) |> 
+  plotly::layout(
+    xaxis = list(showgrid = FALSE),
+    yaxis = list(showgrid = FALSE),
+    plot_bgcolor  = "rgba(0, 0, 0, 0)",
+    paper_bgcolor = "rgba(0, 0, 0, 0)",
+    fig_bgcolor   = "rgba(0, 0, 0, 0)"
+    ) |> 
+  plotly::config(displayModeBar = FALSE)
+```
+
+## **Discrete** Calibration **⚖️**
+
+```{r}
+
+library(rtichoke)
+
+create_calibration_curve(
+  size = 500,
+  probs = list(example_dat$estimated_probabilities),
+  reals = list(example_dat$outcome), type = "discrete"
+)|> 
+  plotly::layout(
+    plot_bgcolor  = "rgba(0, 0, 0, 0)",
+    paper_bgcolor = "rgba(0, 0, 0, 0)",
+    fig_bgcolor   = "rgba(0, 0, 0, 0)"
+    )
+
+```
+
+## **Smooth** Calibration **⚖️** {.smaller}
+
+::::: columns
+::: {.column width="40%"}
+A different approach is to use a smoothing algorithm, in {rtichoke} I use *gam* for large samples and *lowess* for small samples.
+:::
+
+::: {.column width="60%"}
+```{r}
+create_calibration_curve(
+  size = 500,
+  probs = list(example_dat$estimated_probabilities),
+  reals = list(example_dat$outcome), type = "smooth"
+) |> 
+  plotly::layout(
+    plot_bgcolor  = "rgba(0, 0, 0, 0)",
+    paper_bgcolor = "rgba(0, 0, 0, 0)",
+    fig_bgcolor   = "rgba(0, 0, 0, 0)"
+    )
+```
+:::
+:::::
+
+## **Smooth** Calibration **⚖️** {.smaller}
+
+::::: columns
+::: {.column width="40%"}
+If you use smooth calibration, take a moment to explore the ranges of the curve!
+
+It might look bad if you don't zoom-in to the reasonable range of estimated probabilities. That's why many times you might see Histograms or Rug-plots under the Calibration Curve.
+:::
+
+::: {.column width="60%"}
+```{r}
+
+probs_small_probs <- c(rep(0.1, 10), 
+                         rep(0.2, 10), 
+                         rep(0.15, 10), 
+                         rep(0.25, 10),
+                       0.7) + runif(min = -0.02,
+                                                max = 0.02,
+                                                n = 41)
+reals_small_probs <- c(c(1, rep(0, 9)), 
+c(1, rep(0, 9)), 
+c(rep(1, 2), rep(0, 8)), 
+c(rep(1, 2), rep(0, 8)), 0 )
+
+
+create_calibration_curve(
+  size = 500,
+  probs = list(probs_small_probs),
+  reals = list(reals_small_probs),
+  type = "smooth"
+)|> 
+  plotly::layout(
+    plot_bgcolor  = "rgba(0, 0, 0, 0)",
+    paper_bgcolor = "rgba(0, 0, 0, 0)",
+    fig_bgcolor   = "rgba(0, 0, 0, 0)"
+    )
+
+```
+:::
+:::::
